@@ -1,0 +1,225 @@
+﻿using System.Text;
+
+namespace Server.MUOTemplates
+{
+    public class GuildsPhpTemplate : BasePhpTemplate
+    {
+        private readonly MUOTemplateWriter.TemplateConfig _config;
+
+        public GuildsPhpTemplate(string serverName, string port, MUOTemplateWriter.TemplateConfig config)
+            : base(serverName, port)
+        {
+            _config = config;
+        }
+
+        public static string Generate(MUOTemplateWriter.TemplateConfig config)
+        {
+            var template = new GuildsPhpTemplate(config.ServerName, config.Port, config);
+            return template.GenerateTemplate();
+        }
+
+        private string GenerateTemplate()
+        {
+            var sb = new StringBuilder();
+            AppendPhpHeader(sb, "guilds_errors.log", true, true, _config);
+
+            // Load settings from sitesettings.json
+            sb.AppendLine("<?php");
+            sb.AppendLine("$activePage = 'guilds';");
+            sb.AppendLine("$settingsFile = __DIR__ . '/sitesettings.json';");
+            sb.AppendLine("$settings = [");
+            sb.AppendLine("  'menu_visibility' => [],");
+            sb.AppendLine("  'social_visibility' => [],");
+            sb.AppendLine("  'show_background_image' => true,");
+            sb.AppendLine("  'show_powered_by' => true,");
+            sb.AppendLine("  'footer_copyright_domain' => 'mydomain.com',");
+            sb.AppendLine("  'background_color' => '#000000',");
+            sb.AppendLine("  'text_color' => '#ffffff',");
+            sb.AppendLine("  'theme' => 'dark',");
+            sb.AppendLine("  'social_urls' => [");
+            sb.AppendLine("    'discord' => 'https://discord.com',");
+            sb.AppendLine("    'youtube' => 'https://youtube.com',");
+            sb.AppendLine("    'tiktok' => 'https://tiktok.com',");
+            sb.AppendLine("    'twitter' => 'https://x.com',");
+            sb.AppendLine("    'facebook' => 'https://facebook.com'");
+            sb.AppendLine("  ],");
+            sb.AppendLine("  'menu_urls' => [");
+            sb.AppendLine("    'wiki' => 'https://wiki.example.com',");
+            sb.AppendLine("    'forum' => 'https://forum.example.com'");
+            sb.AppendLine("  ]");
+            sb.AppendLine("];");
+            sb.AppendLine("if (file_exists($settingsFile)) {");
+            sb.AppendLine("  $json = file_get_contents($settingsFile);");
+            sb.AppendLine("  $decoded = json_decode($json, true);");
+            sb.AppendLine("  if (is_array($decoded)) {");
+            sb.AppendLine("    $settings = array_merge($settings, $decoded);");
+            sb.AppendLine("  }");
+            sb.AppendLine("}");
+            // Debug settings
+            sb.AppendLine("echo '<!-- Debug: show_background_image = ' . ($settings['show_background_image'] ? 'true' : 'false') . ', show_powered_by = ' . ($settings['show_powered_by'] ? 'true' : 'false') . ', footer_copyright_domain = ' . htmlspecialchars($settings['footer_copyright_domain']) . ', background_color = ' . htmlspecialchars($settings['background_color']) . ' -->';");
+            sb.AppendLine("echo '<!-- Debug: Applied background style = ' . ($settings['show_background_image'] ? 'url(\"images/background.png\") no-repeat center center ' . htmlspecialchars($settings['background_color']) : htmlspecialchars($settings['background_color'])) . ' -->';");
+            sb.AppendLine("?>");
+
+            // HTML structure
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html lang=\"en\">");
+            sb.AppendLine("<head>");
+            sb.AppendLine("    <meta charset=\"UTF-8\" />");
+            sb.AppendLine("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />");
+            sb.AppendLine("    <title><?php echo htmlspecialchars($jsonData['Shard']['ServerName'] ?? 'Unknown Server'); ?> Guilds</title>");
+            sb.AppendLine("    <link rel=\"stylesheet\" href=\"styles.css\">");
+            sb.AppendLine("    <style>");
+            sb.AppendLine("        :root {");
+            sb.AppendLine("            --text-color: <?php echo htmlspecialchars($settings['text_color']); ?>;");
+            sb.AppendLine("        }");
+            sb.AppendLine("        html, body { margin: 0; padding: 0; background: <?php echo $settings['show_background_image'] ? 'url(\"images/background.png\") no-repeat center center ' . htmlspecialchars($settings['background_color']) : htmlspecialchars($settings['background_color']); ?>; background-size: cover; color: var(--text-color); }");
+            sb.AppendLine("        .container, .main-content, .top-bar, .menu ul li a, .powered-by-header, .footer { color: var(--text-color); }");
+            sb.AppendLine("        .content-section-guilds h1, .content-section-guilds table th, .content-section-guilds table td, .content-header h1, .content-header p { color: var(--text-color) !important; }");
+            // Layout styles to match Updates page
+            sb.AppendLine("        .content-wrapper-guilds { display: flex; flex: 1; overflow: hidden; position: relative; margin-top: 60px; margin-bottom: 60px; }");
+            sb.AppendLine("        .main-section-guilds { flex: 0 0 100%; display: flex; flex-direction: column; margin: 0; width: 100%; min-height: calc(100vh - 120px); padding: 0; }");
+            sb.AppendLine("        .content-section-guilds { display: flex; flex-direction: column; width: 100%; max-width: 90vw; margin: 0 auto; height: 100%; }");
+            // Content-header styling to match Updates page
+            sb.AppendLine("        .content-header { position: sticky; top: 0; background: rgba(0, 0, 0, 0.7); padding: 10px 0; z-index: 10; text-align: center; width: 100%; max-width: 90vw; margin: 0 auto; box-sizing: border-box; }");
+            sb.AppendLine("        .content-header h1 { margin: 0; font-size: 2.5em; }");
+            sb.AppendLine("        .content-header p { margin: 5px 0 0; font-size: 1.2em; }");
+            // Style the table container to align with the content-header
+            sb.AppendLine("        .table-container-guilds { margin-top: 10px; width: 100%; max-width: 90vw; background: rgba(0, 0, 0, 0.7); padding: 15px; border: 1px solid #333; overflow-y: auto; flex-grow: 1; max-height: calc(100vh - 220px); box-sizing: border-box; margin-left: auto; margin-right: auto; }");
+            sb.AppendLine("        .table-container-guilds table { width: 100%; border-collapse: collapse; table-layout: auto; }");
+            sb.AppendLine("        .table-container-guilds th, .table-container-guilds td { padding: 10px; text-align: left; border-bottom: 1px solid #333; white-space: nowrap; }");
+            sb.AppendLine("        .table-container-guilds th { background: #222; }");
+            sb.AppendLine("        @media (max-width: 768px) {");
+            sb.AppendLine("            .content-section-guilds { padding: 10px; max-width: 100%; }");
+            sb.AppendLine("            .content-header { max-width: 100%; padding: 10px; }");
+            sb.AppendLine("            .content-header h1 { font-size: 2em; }");
+            sb.AppendLine("            .content-header p { font-size: 1em; }");
+            sb.AppendLine("            .table-container-guilds { padding: 10px; max-width: 100%; max-height: calc(100vh - 200px); }");
+            sb.AppendLine("            .table-container-guilds th, .table-container-guilds td { padding: 8px; font-size: 0.9em; }");
+            sb.AppendLine("        }");
+            sb.AppendLine("    </style>");
+            sb.AppendLine("</head>");
+            sb.AppendLine("<body class=\"theme-<?php echo htmlspecialchars($settings['theme']); ?>\">");
+            sb.AppendLine("    <div class=\"container\">");
+            sb.AppendLine("        <div class=\"main-content\">");
+
+            // Shared header (top bar with logo and updated menu with dynamic URLs)
+            sb.AppendLine("            <div class=\"top-bar\">");
+            sb.AppendLine("                <div class=\"logo\">");
+            sb.AppendLine("                    <img src=\"images/logo.png\" alt=\"ModernUO Logo\">");
+            sb.AppendLine("                </div>");
+            sb.AppendLine("                <div class=\"menu\">");
+            sb.AppendLine("                    <ul>");
+            sb.AppendLine("                        <?php");
+            sb.AppendLine("                        if ($settings['menu_visibility']['index']) {");
+            sb.AppendLine("                            echo \"<li><a href='index.php' class='\" . ($activePage == 'index' ? 'active' : '') . \"'>Home</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['players']) {");
+            sb.AppendLine("                            echo \"<li><a href='players.php' class='\" . ($activePage == 'players' ? 'active' : '') . \"'>Players</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['guilds']) {");
+            sb.AppendLine("                            echo \"<li><a href='guilds.php' class='\" . ($activePage == 'guilds' ? 'active' : '') . \"'>Guilds</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['forum']) {");
+            sb.AppendLine("                            echo \"<li><a href='\" . htmlspecialchars($settings['menu_urls']['forum']) . \"' class='\" . ($activePage == 'forum' ? 'active' : '') . \"'>Forum</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['wiki']) {");
+            sb.AppendLine("                            echo \"<li><a href='\" . htmlspecialchars($settings['menu_urls']['wiki']) . \"' class='\" . ($activePage == 'wiki' ? 'active' : '') . \"'>Wiki</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['uotools']) {");
+            sb.AppendLine("                            echo \"<li><a href='uotools.php' class='\" . ($activePage == 'uotools' ? 'active' : '') . \"'>UO Tools</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['social']) {");
+            sb.AppendLine("                            echo \"<li><a href='social.php' class='\" . ($activePage == 'social' ? 'active' : '') . \"'>Updates</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['contact']) {");
+            sb.AppendLine("                            echo \"<li><a href='contact.php' class='\" . ($activePage == 'contact' ? 'active' : '') . \"'>Contact</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if ($settings['menu_visibility']['client']) {");
+            sb.AppendLine("                            echo \"<li><a href='client.php' class='\" . ($activePage == 'client' ? 'active' : '') . \"'>Client</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in']) {");
+            sb.AppendLine("                            echo \"<li><a href='admin.php' class='\" . ($activePage == 'admin' ? 'active' : '') . \"'>Admin</a></li>\";");
+            sb.AppendLine("                        }");
+            sb.AppendLine("                        ?>");
+            sb.AppendLine("                    </ul>");
+            sb.AppendLine("                </div>");
+            sb.AppendLine("            </div>");
+
+            // Shared powered-by header with toggle
+            sb.AppendLine("            <?php if (!empty($settings['show_powered_by'])) { ?>");
+            sb.AppendLine("            <div class=\"powered-by-header\">");
+            sb.AppendLine("                <span>Powered by ModernUO</span>");
+            sb.AppendLine("                <img src=\"images/muologo.png\" alt=\"ModernUO Logo\" class=\"modernuo-logo\">");
+            sb.AppendLine("            </div>");
+            sb.AppendLine("            <?php } ?>");
+
+            // Unique content wrapper for guilds page
+            sb.AppendLine("            <div class=\"content-wrapper-guilds\">");
+            sb.AppendLine("                <div class=\"main-section-guilds\">");
+            sb.AppendLine("                    <div class=\"content-section-guilds table-section-guilds\">");
+            // Add content-header div to match Updates page
+            sb.AppendLine("                        <div class=\"content-header\">");
+            sb.AppendLine("                            <h1><?php echo htmlspecialchars($jsonData['Shard']['ServerName'] ?? 'Unknown Server'); ?> Guilds</h1>");
+            sb.AppendLine("                            <p>List of guilds on the shard.</p>");
+            sb.AppendLine("                        </div>");
+            sb.AppendLine("                        <div class=\"table-container-guilds\">");
+            sb.AppendLine("                            <table>");
+            sb.AppendLine("                                <thead><tr><th>Name</th><th>Abbr</th><th>Type</th><th>Members</th><th>Kills</th><th>Wars</th></tr></thead>");
+            sb.AppendLine("                                <tbody>");
+            sb.AppendLine("                                    <?php");
+            sb.AppendLine("                                    if ($jsonData && !empty($jsonData['Guilds'])) {");
+            sb.AppendLine("                                        usort($jsonData['Guilds'], fn($a, $b) => strcmp($a['Name'], $b['Name']));");
+            sb.AppendLine("                                        foreach ($jsonData['Guilds'] as $g) {");
+            sb.AppendLine("                                            echo '<tr>';");
+            sb.AppendLine("                                            echo '<td>' . htmlspecialchars($g['Name']) . '</td>';");
+            sb.AppendLine("                                            echo '<td>' . htmlspecialchars($g['Abbreviation']) . '</td>';");
+            sb.AppendLine("                                            echo '<td>' . htmlspecialchars($g['Type']) . '</td>';");
+            sb.AppendLine("                                            echo '<td>' . htmlspecialchars($g['Members']) . '</td>';");
+            sb.AppendLine("                                            echo '<td>' . htmlspecialchars($g['Kills']) . '</td>';");
+            sb.AppendLine("                                            echo '<td>' . htmlspecialchars($g['Wars']) . '</td>';");
+            sb.AppendLine("                                            echo '</tr>';");
+            sb.AppendLine("                                        }");
+            sb.AppendLine("                                    } else {");
+            sb.AppendLine("                                        echo '<tr><td colspan=\"6\">No guilds found.</td></tr>';");
+            sb.AppendLine("                                    }");
+            sb.AppendLine("                                    ?>");
+            sb.AppendLine("                                </tbody>");
+            sb.AppendLine("                            </table>");
+            sb.AppendLine("                        </div>");
+            sb.AppendLine("                    </div>");
+            sb.AppendLine("                </div>");
+            sb.AppendLine("            </div>");
+            sb.AppendLine("        </div>");
+
+            // Shared footer with dynamic social media links
+            sb.AppendLine("        <div class=\"footer\">");
+            sb.AppendLine("            <div class=\"footer-container\">");
+            sb.AppendLine("                <div class=\"social-icons\">");
+            sb.AppendLine("                    <?php");
+            sb.AppendLine("                    if ($settings['social_visibility']['facebook']) echo '<a href=\"' . htmlspecialchars($settings['social_urls']['facebook']) . '\" class=\"social-icon\"><img src=\"https://img.icons8.com/color/48/000000/facebook.png\" alt=\"Facebook\" class=\"social-icon-img\"></a>';");
+            sb.AppendLine("                    if ($settings['social_visibility']['youtube']) echo '<a href=\"' . htmlspecialchars($settings['social_urls']['youtube']) . '\" class=\"social-icon\"><img src=\"https://img.icons8.com/color/48/000000/youtube-play.png\" alt=\"YouTube\" class=\"social-icon-img\"></a>';");
+            sb.AppendLine("                    if ($settings['social_visibility']['tiktok']) echo '<a href=\"' . htmlspecialchars($settings['social_urls']['tiktok']) . '\" class=\"social-icon\"><img src=\"https://img.icons8.com/color/48/000000/tiktok.png\" alt=\"TikTok\" class=\"social-icon-img\"></a>';");
+            sb.AppendLine("                    if ($settings['social_visibility']['discord']) echo '<a href=\"' . htmlspecialchars($settings['social_urls']['discord']) . '\" class=\"social-icon\"><img src=\"https://img.icons8.com/color/48/000000/discord.png\" alt=\"Discord\" class=\"social-icon-img\"></a>';");
+            sb.AppendLine("                    if ($settings['social_visibility']['twitter']) echo '<a href=\"' . htmlspecialchars($settings['social_urls']['twitter']) . '\" class=\"social-icon\"><img src=\"https://img.icons8.com/?size=48&id=phOKFKYpe00C&format=png&color=000000\" alt=\"Twitter\" class=\"social-icon-img\"></a>';");
+            sb.AppendLine("                    ?>");
+            sb.AppendLine("                </div>");
+            sb.AppendLine("                <p>Copyright <?php echo htmlspecialchars($settings['footer_copyright_domain'] ?? 'mydomain.com'); ?></p>");
+            sb.AppendLine("                <div class=\"powered-by\">");
+            sb.AppendLine("                    <span>Compatible</span>");
+            sb.AppendLine("                    <div class=\"powered-by-images\">");
+            sb.AppendLine("                        <img src=\"images/razor.png\" alt=\"Razor\">");
+            sb.AppendLine("                        <img src=\"images/Uosteamlogo.png\" alt=\"UOsteam\" class=\"uosteam-icon\">");
+            sb.AppendLine("                        <img src=\"images/classicUOLogo.png\" alt=\"ClassicUO\" class=\"classicuo-icon\">");
+            sb.AppendLine("                    </div>");
+            sb.AppendLine("                </div>");
+            sb.AppendLine("            </div>");
+            sb.AppendLine("        </div>");
+            sb.AppendLine("    </div>");
+
+            sb.AppendLine("</body>");
+            sb.AppendLine("</html>");
+
+            return sb.ToString();
+        }
+    }
+}
